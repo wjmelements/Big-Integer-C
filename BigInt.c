@@ -68,7 +68,7 @@ void BigInt_from_int(size_t NumWords, BigInt_t * BigInt, BigInt_tmp_t Integer)
     BigInt_FROM_INT(BigInt, Integer);
 }
 
-int BigInt_to_int(size_t NumWords, BigInt_t * BigInt)
+int BigInt_to_int(size_t NumWords, const BigInt_t * BigInt)
 {
     int ret = 0;
 
@@ -90,14 +90,14 @@ int BigInt_to_int(size_t NumWords, BigInt_t * BigInt)
     return ret;
 }
 
-size_t BigInt_truncate(size_t NumWords, BigInt_t * BigInt)
+size_t BigInt_truncate(size_t NumWords, const BigInt_t * BigInt)
 {
     --NumWords;
     while (BigInt[NumWords] == 0 && NumWords > 0) --NumWords;
     return ++NumWords;
 }
 
-void BigInt_from_string(size_t NumWords, BigInt_t * BigInt, char * str)
+void BigInt_from_string(size_t NumWords, BigInt_t * BigInt, const char * str)
 {
     BigInt_zero(NumWords, BigInt);
 
@@ -118,7 +118,7 @@ void BigInt_from_string(size_t NumWords, BigInt_t * BigInt, char * str)
     }
 }
 
-static BigInt_t hex_to_word(char * Text, int Length)
+static BigInt_t hex_to_word(const char * Text, int Length)
 {
     BigInt_t word = 0;
     for (int i = 0; i < Length; ++i)
@@ -135,7 +135,7 @@ static BigInt_t hex_to_word(char * Text, int Length)
     return word;
 }
 
-void BigInt_from_hex_string(size_t NumWords, BigInt_t * BigInt, char * Str)
+void BigInt_from_hex_string(size_t NumWords, BigInt_t * BigInt, const char * Str)
 {
     BigInt_zero(NumWords, BigInt);
     size_t length = strlen(Str);
@@ -144,7 +144,7 @@ void BigInt_from_hex_string(size_t NumWords, BigInt_t * BigInt, char * Str)
     size_t num_words = length / (BigIntWordSize*2);
     if (num_words * (BigIntWordSize*2) < length) ++num_words; /* round up */
 
-    char * string_word = Str + length;
+    const char * string_word = Str + length;
 
     for (size_t i = 0; i < num_words; ++i)
     {
@@ -155,7 +155,7 @@ void BigInt_from_hex_string(size_t NumWords, BigInt_t * BigInt, char * Str)
     }
 }
 
-void BigInt_to_hex_string(size_t NumWords, BigInt_t * BigInt, char * Str)
+void BigInt_to_hex_string(size_t NumWords, const BigInt_t * BigInt, char * Str)
 {
     NumWords = BigInt_truncate(NumWords, BigInt);
 
@@ -207,7 +207,7 @@ void BigInt_inc(size_t NumWords, BigInt_t * BigInt)
     }
 }
 
-void BigInt_add(size_t AWords, BigInt_t * A, size_t BWords, BigInt_t * B, size_t Out_NumWords, BigInt_t * Out)
+void BigInt_add(size_t AWords, const BigInt_t * A, size_t BWords, const BigInt_t * B, size_t Out_NumWords, BigInt_t * Out)
 {
     /* Make it so that A will be smaller than B */
     if (AWords > BWords)
@@ -215,7 +215,7 @@ void BigInt_add(size_t AWords, BigInt_t * A, size_t BWords, BigInt_t * B, size_t
         size_t temp1 = BWords;
         BWords = AWords;
         AWords = temp1;
-        BigInt_t * temp2 = B;
+        const BigInt_t * temp2 = B;
         B = A;
         A = temp2;
     }
@@ -268,7 +268,7 @@ void BigInt_add(size_t AWords, BigInt_t * A, size_t BWords, BigInt_t * B, size_t
     for (; i < loop3; ++i) Out[i] = 0;
 }
 
-void BigInt_sub(size_t AWords, BigInt_t * A, size_t BWords, BigInt_t * B, size_t Out_NumWords, BigInt_t * Out)
+void BigInt_sub(size_t AWords, const BigInt_t * A, size_t BWords, const BigInt_t * B, size_t Out_NumWords, BigInt_t * Out)
 {
     int loop_to = 0;
     size_t loop1 = 0;
@@ -343,7 +343,7 @@ void BigInt_sub(size_t AWords, BigInt_t * A, size_t BWords, BigInt_t * B, size_t
     }
 }
 
-void BigInt_mul_basic(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_mul_basic(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     BigInt_t * row = alloca(NumWords*BigIntWordSize);
     BigInt_t * tmp = alloca(NumWords*BigIntWordSize);
@@ -368,7 +368,7 @@ void BigInt_mul_basic(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Ou
 }
 
 /* Cool USSR algorithm for fast multiplication (THERE IS NOT A SINGLE 100% CORRECT PSEUDO CODE ONLINE) */
-static void BigInt_Karatsuba_internal(size_t num1_NumWords, BigInt_t * num1, size_t num2_NumWords, BigInt_t * num2, size_t Out_NumWords, BigInt_t * Out, int rlevel) /* Out should be XWords + YWords in size to always avoid overflow */
+static void BigInt_Karatsuba_internal(size_t num1_NumWords, const BigInt_t * num1, size_t num2_NumWords, const BigInt_t * num2, size_t Out_NumWords, BigInt_t * Out, int rlevel) /* Out should be XWords + YWords in size to always avoid overflow */
 {
     /* Optimise the size, to avoid any waste any resources */
     num1_NumWords = BigInt_truncate(num1_NumWords, num1);
@@ -394,16 +394,16 @@ static void BigInt_Karatsuba_internal(size_t num1_NumWords, BigInt_t * num1, siz
 
     /* low 1 */
     size_t low1_NumWords = m2;
-    BigInt_t * low1 = num1;
+    const BigInt_t * low1 = num1;
     /* high 1 */
     size_t high1_NumWords = num1_NumWords - m2;
-    BigInt_t * high1 = num1 + m2;
+    const BigInt_t * high1 = num1 + m2;
     /* low 2 */ 
     size_t low2_NumWords = m2;
-    BigInt_t * low2 = num2;
+    const BigInt_t * low2 = num2;
     /* high 2 */
     size_t high2_NumWords = num2_NumWords - m2;
-    BigInt_t * high2 = num2 + m2;
+    const BigInt_t * high2 = num2 + m2;
 
     // z0 = karatsuba(low1, low2)
     // z1 = karatsuba((low1 + high1), (low2 + high2))
@@ -442,12 +442,12 @@ static void BigInt_Karatsuba_internal(size_t num1_NumWords, BigInt_t * num1, siz
     BigInt_add(Out_NumWords, Out, z0_NumWords, z0, Out_NumWords, Out);
 }
 
-void BigInt_mul(size_t ANumWords, BigInt_t * A, size_t BNumWords, BigInt_t * B, size_t OutNumWords, BigInt_t * Out)
+void BigInt_mul(size_t ANumWords, const BigInt_t * A, size_t BNumWords, const BigInt_t * B, size_t OutNumWords, BigInt_t * Out)
 {
     BigInt_Karatsuba_internal(ANumWords, A, BNumWords, B, OutNumWords, Out, 0);
 }
  
-void BigInt_div(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_div(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     BigInt_t * current = alloca(NumWords*BigIntWordSize);
     BigInt_t * denom = alloca(NumWords*BigIntWordSize);
@@ -524,14 +524,14 @@ void BigInt_rshift(size_t NumWords, BigInt_t * B, int nbits)
     }
 }
 
-void BigInt_mod(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_mod(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     /* Take divmod and throw away div part */
     BigInt_t * tmp = alloca(NumWords*BigIntWordSize);
     BigInt_divmod(NumWords, A, B, tmp, Out);
 }
 
-void BigInt_divmod(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * C, BigInt_t * D)
+void BigInt_divmod(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * C, BigInt_t * D)
 {
     BigInt_t * tmp = alloca(NumWords*BigIntWordSize);
 
@@ -545,28 +545,28 @@ void BigInt_divmod(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * C, Bi
     BigInt_sub(NumWords, A, NumWords, tmp, NumWords, D);
 }
 
-void BigInt_and(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_and(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     for (size_t i = 0; i < NumWords; ++i) {
         Out[i] = (A[i] & B[i]);
     }
 }
 
-void BigInt_or(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_or(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     for (size_t i = 0; i < NumWords; ++i) {
         Out[i] = (A[i] | B[i]);
     }
 }
 
-void BigInt_xor(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_xor(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     for (size_t i = 0; i < NumWords; ++i) {
         Out[i] = (A[i] ^ B[i]);
     }
 }
 
-int BigInt_cmp(size_t NumWords, BigInt_t * A, BigInt_t * B)
+int BigInt_cmp(size_t NumWords, const BigInt_t * A, const BigInt_t * B)
 {
     size_t i = NumWords;
     do {
@@ -581,7 +581,7 @@ int BigInt_cmp(size_t NumWords, BigInt_t * A, BigInt_t * B)
     return EQUAL;
 }
 
-int BigInt_is_zero(size_t NumWords, BigInt_t * BigInt)
+int BigInt_is_zero(size_t NumWords, const BigInt_t * BigInt)
 {
     for (size_t i = 0; i < NumWords; ++i) {
         if (BigInt[i]) {
@@ -592,7 +592,7 @@ int BigInt_is_zero(size_t NumWords, BigInt_t * BigInt)
     return 1;
 }
 
-void BigInt_pow(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
+void BigInt_pow(size_t NumWords, const BigInt_t * A, const BigInt_t * B, BigInt_t * Out)
 {
     BigInt_zero(NumWords, Out);
 
@@ -623,7 +623,7 @@ void BigInt_pow(size_t NumWords, BigInt_t * A, BigInt_t * B, BigInt_t * Out)
     }
 }
 
-void BigInt_isqrt(size_t NumWords, BigInt_t * A, BigInt_t * B)
+void BigInt_isqrt(size_t NumWords, const BigInt_t * A, BigInt_t * B)
 {
     BigInt_t * low = alloca(NumWords*BigIntWordSize);
     BigInt_t * high = alloca(NumWords*BigIntWordSize);
@@ -652,7 +652,7 @@ void BigInt_isqrt(size_t NumWords, BigInt_t * A, BigInt_t * B)
     BigInt_copy(NumWords, B, low);
 }
 
-void BigInt_copy(size_t NumWords, BigInt_t * Dst, BigInt_t * Src)
+void BigInt_copy(size_t NumWords, BigInt_t * Dst, const BigInt_t * Src)
 {
     for (size_t i = 0; i < NumWords; ++i) {
         Dst[i] = Src[i];
